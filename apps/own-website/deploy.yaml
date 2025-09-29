@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: own-app
+  name: own-app
+  namespace: website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: own-app
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: own-app
+    spec:
+      containers:
+      - image: krishnakishore27/portfolio:latest
+        name: portfolio
+        resources: {}
+status: {}
