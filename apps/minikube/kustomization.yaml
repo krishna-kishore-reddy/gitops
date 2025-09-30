@@ -3,11 +3,9 @@ kind: Kustomization
 
 helmCharts:
 - name: kube-prometheus-stack
-  version: 77.10.0
+  version: v0.85.0
   repo: https://prometheus-community.github.io/helm-charts
   releaseName: prometheus
   namespace: prometheus
   valuesFile: values.yaml
-
-
 
