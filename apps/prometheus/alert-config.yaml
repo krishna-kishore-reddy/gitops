@@ -1,4 +1,4 @@
-global:
+global:  #here the name of the secret should be the same as the exising one which installed by default with the kube pormethues stack helm chart
   resolve_timeout: 5m
 inhibit_rules:
 - equal:
@@ -26,20 +26,24 @@ inhibit_rules:
 receivers:
 - name: "slack"
   slack_configs:
-    - api_url: 'https://hooks.slack.com/services/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'
+    - api_url: ${SLACK_WEBHOOK_URL}
       channel: '#alerts'
       send_resolved: true
       title: |-
-        [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} - {{ .CommonLabels.severity }}
+        🚨 [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity | toUpper }})
       text: |-
-        {{ range .Alerts }}
-        *Summary:* {{ .Annotations.summary }}
-        *Description:* {{ .Annotations.description }}
-        *Starts At:* {{ .StartsAt }}
-        *Ends At:* {{ .EndsAt }}
-        *Namespace:* {{ .Labels.namespace }}
-        *Pod:* {{ .Labels.pod }}
-        {{ end }}
+        *🌍 Cluster:* my-k8s-cluster
+        *📦 Namespace:* `{{ .CommonLabels.namespace }}`
+        *🔹 Pod:* `{{ .CommonLabels.pod }}`
+        *⚠️ Severity:* `{{ .CommonLabels.severity }}`
+        *📝 Summary:* {{ .CommonAnnotations.summary }}
+        *📖 Description:* {{ .CommonAnnotations.description }}
+
+        *⏱ Starts At:* {{ (index .Alerts 0).StartsAt }}
+        *🔚 Ends At:* {{ (index .Alerts 0).EndsAt }}
+        
+        👉 <http://alertmanager.inarm.in|View in Alertmanager>
+
 route:
   group_by:
   - namespace
