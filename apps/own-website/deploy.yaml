@@ -19,7 +19,7 @@ spec:
         app: own-app
     spec:
       containers:
-      - image: krishnakishore27/portfolio:latest
+      - image: krishnakishore27/portfolio:v1
         name: portfolio
         resources: {}
 status: {}
