@@ -4,12 +4,12 @@ metadata:
   name: custom-alerts
   namespace: monitoring 
   labels:
-    app.kubernetes.io/instance: prometheus
+    app.kubernetes.io/instance: monitoring
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: kube-prometheus-stack
     app: kube-prometheus-stack
     heritage: Helm
-    release: prometheus 
+    release: monitoring 
 spec:
   groups:
     - name: KubestateExporter
