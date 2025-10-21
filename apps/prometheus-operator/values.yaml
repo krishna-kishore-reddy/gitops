@@ -2,7 +2,7 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: 'https://hooks.slack.com/services/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'
+      slack_api_url: 'https://hooks.slack.com/services/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'
 
     inhibit_rules:
       - equal: [namespace, alertname]
