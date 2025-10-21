@@ -1,0 +1,243 @@
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/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'
+    
+    inhibit_rules:
+      - equal: [namespace, alertname]
+        source_matchers: [severity = critical]
+        target_matchers: [severity =~ warning|info]
+      - equal: [namespace, alertname]
+        source_matchers: [severity = warning]
+        target_matchers: [severity = info]
+      - equal: [namespace]
+        source_matchers: [alertname = InfoInhibitor]
+        target_matchers: [severity = info]
+      - target_matchers: [alertname = InfoInhibitor]
+    
+    receivers:
+      - name: 'slack-critical'
+        slack_configs:
+          - channel: '#alerts'
+            send_resolved: true
+            color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+            title: ''
+            text: |-
+              {{ if eq .Status "firing" }}
+              ╔═══════════════════════════════════════════════════════════════╗
+              ║                    🚨 CRITICAL ALERT FIRED 🚨                  ║
+              ╚═══════════════════════════════════════════════════════════════╝
+              {{ else }}
+              ╔═══════════════════════════════════════════════════════════════╗
+              ║                    ✅ ALERT RESOLVED ✅                         ║
+              ╚═══════════════════════════════════════════════════════════════╝
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  📋 ALERT INFORMATION
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🎯 *Alert Name:*
+                 `{{ .CommonLabels.alertname }}`
+
+              {{ if .CommonAnnotations.summary }}
+              📝 *Summary:*
+                 {{ .CommonAnnotations.summary }}
+              {{ end }}
+
+              {{ if .CommonAnnotations.description }}
+              📖 *Description:*
+                 {{ .CommonAnnotations.description }}
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  🎯 TARGET DETAILS
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🌍 *Cluster:*        `my-k8s-cluster`
+              📦 *Namespace:*      `{{ .CommonLabels.namespace | default "N/A" }}`
+              {{ if .CommonLabels.pod }}🔹 *Pod:*            `{{ .CommonLabels.pod }}`{{ end }}
+              {{ if .CommonLabels.container }}📦 *Container:*      `{{ .CommonLabels.container }}`{{ end }}
+              {{ if .CommonLabels.node }}🖥️  *Node:*           `{{ .CommonLabels.node }}`{{ end }}
+              {{ if .CommonLabels.instance }}🔗 *Instance:*       `{{ .CommonLabels.instance }}`{{ end }}
+              {{ if .CommonLabels.job }}⚙️  *Job:*            `{{ .CommonLabels.job }}`{{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  ⚠️  SEVERITY & STATUS
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              {{ if eq .CommonLabels.severity "critical" }}
+              🔴 *Severity:*       `CRITICAL` ⚠️
+              {{ else if eq .CommonLabels.severity "warning" }}
+              🟠 *Severity:*       `WARNING` ⚠️
+              {{ else if eq .CommonLabels.severity "info" }}
+              🔵 *Severity:*       `INFO` ℹ️
+              {{ else }}
+              ⚪ *Severity:*       `{{ .CommonLabels.severity | toUpper }}`
+              {{ end }}
+
+              {{ if eq .Status "firing" }}
+              🔥 *Status:*         `FIRING`
+              {{ else }}
+              ✅ *Status:*         `RESOLVED`
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  ⏱️  TIMELINE
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              {{ range .Alerts }}
+              🕐 *Started:*        `{{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}`
+              {{ if .EndsAt }}🕐 *Ended:*          `{{ .EndsAt.Format "2006-01-02 15:04:05 MST" }}`{{ end }}
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  🔍 ADDITIONAL LABELS
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              {{ range .CommonLabels.SortedPairs }}{{ if and (ne .Name "alertname") (ne .Name "severity") (ne .Name "namespace") (ne .Name "pod") (ne .Name "container") (ne .Name "node") (ne .Name "instance") (ne .Name "job") }}
+              • *{{ .Name }}:* `{{ .Value }}`{{ end }}{{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  🔗 QUICK ACTIONS
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🎛️  <http://alertmanager.inarm.in/#/alerts|View in AlertManager>  │  📊 <http://prometheus.inarm.in|View in Prometheus>  │  📈 <http://grafana.inarm.in|View in Grafana>
+
+              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+              {{ if eq .Status "firing" }}
+              ⚡ *Action Required:* Please investigate immediately!
+              {{ else }}
+              ✅ *Status:* Issue has been resolved. No action needed.
+              {{ end }}
+
+      - name: 'slack-warning'
+        slack_configs:
+          - channel: '#alerts'
+            send_resolved: true
+            color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
+            title: ''
+            text: |-
+              {{ if eq .Status "firing" }}
+              ╔═══════════════════════════════════════════════════════════════╗
+              ║                    ⚠️  WARNING ALERT FIRED ⚠️                  ║
+              ╚═══════════════════════════════════════════════════════════════╝
+              {{ else }}
+              ╔═══════════════════════════════════════════════════════════════╗
+              ║                    ✅ ALERT RESOLVED ✅                         ║
+              ╚═══════════════════════════════════════════════════════════════╝
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  📋 ALERT INFORMATION
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🎯 *Alert Name:*
+                 `{{ .CommonLabels.alertname }}`
+
+              {{ if .CommonAnnotations.summary }}
+              📝 *Summary:*
+                 {{ .CommonAnnotations.summary }}
+              {{ end }}
+
+              {{ if .CommonAnnotations.description }}
+              📖 *Description:*
+                 {{ .CommonAnnotations.description }}
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  🎯 TARGET DETAILS
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🌍 *Cluster:*        `my-k8s-cluster`
+              📦 *Namespace:*      `{{ .CommonLabels.namespace | default "N/A" }}`
+              {{ if .CommonLabels.pod }}🔹 *Pod:*            `{{ .CommonLabels.pod }}`{{ end }}
+              {{ if .CommonLabels.container }}📦 *Container:*      `{{ .CommonLabels.container }}`{{ end }}
+              {{ if .CommonLabels.node }}🖥️  *Node:*           `{{ .CommonLabels.node }}`{{ end }}
+              {{ if .CommonLabels.instance }}🔗 *Instance:*       `{{ .CommonLabels.instance }}`{{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  ⚠️  SEVERITY & STATUS
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🟠 *Severity:*       `WARNING` ⚠️
+              {{ if eq .Status "firing" }}⚡ *Status:*         `FIRING`{{ else }}✅ *Status:*         `RESOLVED`{{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  ⏱️  TIMELINE
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              {{ range .Alerts }}
+              🕐 *Started:*        `{{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}`
+              {{ if .EndsAt }}🕐 *Ended:*          `{{ .EndsAt.Format "2006-01-02 15:04:05 MST" }}`{{ end }}
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  🔗 QUICK ACTIONS
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🎛️  <http://alertmanager.inarm.in/#/alerts|View in AlertManager>  │  📊 <http://prometheus.inarm.in|View in Prometheus>  │  📈 <http://grafana.inarm.in|View in Grafana>
+
+      - name: 'slack-info'
+        slack_configs:
+          - channel: '#alerts'
+            send_resolved: true
+            color: '{{ if eq .Status "firing" }}#439FE0{{ else }}good{{ end }}'
+            title: ''
+            text: |-
+              {{ if eq .Status "firing" }}
+              ╔═══════════════════════════════════════════════════════════════╗
+              ║                    ℹ️  INFO ALERT FIRED ℹ️                     ║
+              ╚═══════════════════════════════════════════════════════════════╝
+              {{ else }}
+              ╔═══════════════════════════════════════════════════════════════╗
+              ║                    ✅ ALERT RESOLVED ✅                         ║
+              ╚═══════════════════════════════════════════════════════════════╝
+              {{ end }}
+
+              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+              ┃  📋 ALERT INFORMATION
+              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+              🎯 *Alert Name:* `{{ .CommonLabels.alertname }}`
+              {{ if .CommonAnnotations.summary }}📝 *Summary:* {{ .CommonAnnotations.summary }}{{ end }}
+              {{ if .CommonAnnotations.description }}📖 *Description:* {{ .CommonAnnotations.description }}{{ end }}
+
+              🌍 *Cluster:* `my-k8s-cluster` │ 📦 *Namespace:* `{{ .CommonLabels.namespace | default "N/A" }}`
+              {{ if .CommonLabels.pod }}🔹 *Pod:* `{{ .CommonLabels.pod }}`{{ end }}
+
+              🔵 *Severity:* `INFO` │ {{ if eq .Status "firing" }}ℹ️ *Status:* `FIRING`{{ else }}✅ *Status:* `RESOLVED`{{ end }}
+
+              🎛️  <http://alertmanager.inarm.in/#/alerts|View Details>
+
+    route:
+      group_by: [alertname, cluster, namespace, pod]
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: 'slack-warning'
+      routes:
+        - matchers:
+            - severity = critical
+          receiver: 'slack-critical'
+          continue: false
+          
+        - matchers:
+            - severity = warning
+          receiver: 'slack-warning'
+          continue: false
+          
+        - matchers:
+            - severity = info
+          receiver: 'slack-info'
+          continue: false
+          
+        - matchers:
+            - alertname = Watchdog
+          receiver: 'slack-info'
+          repeat_interval: 24h
+
+    templates:
+      - '/etc/alertmanager/config/*.tmpl'
