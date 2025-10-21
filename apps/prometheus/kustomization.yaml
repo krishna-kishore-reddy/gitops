@@ -4,7 +4,7 @@ resources:
 - rules.yaml
 
 secretGenerator:
-  - name: alertmanager-config
+  - name: alertmanager-monitoring-kube-prometheus-alertmanager
     files:
       - alertmanager.yaml=alert-config.yaml
     type: Opaque
