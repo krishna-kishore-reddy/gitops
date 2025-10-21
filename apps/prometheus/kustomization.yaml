@@ -3,10 +3,10 @@ kind: Kustomization
 resources:
 - rules.yaml
 
-secretGenerator:
-  - name: alertmanager-monitoring-kube-prometheus-alertmanager
-    files:
-      - alertmanager.yaml=alert-config.yaml
-    type: Opaque
-    options:
-      disableNameSuffixHash: true
+#secretGenerator:
+#  - name: alertmanager-monitoring-kube-prometheus-alertmanager
+#    files:
+#      - alertmanager.yaml=alert-config.yaml
+#    type: Opaque
+#    options:
+#      disableNameSuffixHash: true
