@@ -1,59 +1,72 @@
-global:  #here the name of the secret should be the same as the exising one which installed by default with the kube pormethues stack helm chart
-  resolve_timeout: 5m
-inhibit_rules:
-- equal:
-  - namespace
-  - alertname
-  source_matchers:
-  - severity = critical
-  target_matchers:
-  - severity =~ warning|info
-- equal:
-  - namespace
-  - alertname
-  source_matchers:
-  - severity = warning
-  target_matchers:
-  - severity = info
-- equal:
-  - namespace
-  source_matchers:
-  - alertname = InfoInhibitor
-  target_matchers:
-  - severity = info
-- target_matchers:
-  - alertname = InfoInhibitor
-receivers:
-- name: "slack"
-  slack_configs:
-    - api_url: ${SLACK_WEBHOOK_URL}
-      channel: '#alerts'
-      send_resolved: true
-      title: |-
-        🚨 [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity | toUpper }})
-      text: |-
-        *🌍 Cluster:* my-k8s-cluster
-        *📦 Namespace:* `{{ .CommonLabels.namespace }}`
-        *🔹 Pod:* `{{ .CommonLabels.pod }}`
-        *⚠️ Severity:* `{{ .CommonLabels.severity }}`
-        *📝 Summary:* {{ .CommonAnnotations.summary }}
-        *📖 Description:* {{ .CommonAnnotations.description }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-main
+  namespace: monitoring
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
 
-        *⏱ Starts At:* {{ (index .Alerts 0).StartsAt }}
-        *🔚 Ends At:* {{ (index .Alerts 0).EndsAt }}
-        
-        👉 <http://alertmanager.inarm.in|View in Alertmanager>
+    route:
+      group_by: ['alertname', 'namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 3h
+      receiver: "slack-critical"
+      routes:
+        - match:
+            severity: critical
+          receiver: "slack-critical"
+        - match:
+            severity: warning
+          receiver: "slack-warning"
+        - match:
+            severity: info
+          receiver: "slack-info"
 
-route:
-  group_by:
-  - namespace
-  group_interval: 5m
-  group_wait: 30s
-  receiver: "slack"
-  repeat_interval: 12h
-  routes:
-    - matchers:
-        - severity = critical|warning|info
-      receiver: "slack"
-templates:
-- /etc/alertmanager/config/*.tmpl
+    receivers:
+      - name: "slack-critical"
+        slack_configs:
+          - send_resolved: true
+            api_url: "https://hooks.slack.com/services/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"
+            channel: "#alerts"
+            title: ":rotating_light: CRITICAL ALERT"
+            text: |
+              *Alert:* {{ .CommonLabels.alertname }}
+              *Severity:* {{ .CommonLabels.severity }}
+              *Namespace:* {{ .CommonLabels.namespace }}
+              {{ if .CommonLabels.pod }}*Pod:* {{ .CommonLabels.pod }}{{ end }}
+              *Description:* {{ range .Alerts }}{{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}No description{{ end }}{{ end }}
+              *Start:* {{ range .Alerts }}{{ .StartsAt }}{{ end }}
+
+      - name: "slack-warning"
+        slack_configs:
+          - send_resolved: true
+            api_url: "https://hooks.slack.com/services/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"
+            channel: "#alerts"
+            title: ":warning: Warning Alert"
+            text: |
+              *Alert:* {{ .CommonLabels.alertname }}
+              *Severity:* {{ .CommonLabels.severity }}
+              *Namespace:* {{ .CommonLabels.namespace }}
+              {{ if .CommonLabels.pod }}*Pod:* {{ .CommonLabels.pod }}{{ end }}
+              *Description:* {{ range .Alerts }}{{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}No description{{ end }}{{ end }}
+              *Start:* {{ range .Alerts }}{{ .StartsAt }}{{ end }}
+
+      - name: "slack-info"
+        slack_configs:
+          - send_resolved: true
+            api_url: "https://hooks.slack.com/services/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"
+            channel: "#alerts"
+            title: ":information_source: Info Alert"
+            text: |
+              *Alert:* {{ .CommonLabels.alertname }}
+              *Severity:* {{ .CommonLabels.severity }}
+              *Namespace:* {{ .CommonLabels.namespace }}
+              {{ if .CommonLabels.pod }}*Pod:* {{ .CommonLabels.pod }}{{ end }}
+              *Description:* {{ range .Alerts }}{{ if .Annotations.description }}{{ .Annotations.description }}{{ else if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}No description{{ end }}{{ end }}
+
+    templates:
+      - '/etc/alertmanager/config/*.tmpl'
