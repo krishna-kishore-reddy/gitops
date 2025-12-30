@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/part-of: kube-prometheus-stack
     app: kube-prometheus-stack
     heritage: Helm
-    release: monitoring 
+    release: monitoring #this is the mandatory label and only required label, in place of monitoring add the helm release name that's it if release name is prometheus then release: prometheus 
 spec:
   groups:
     - name: KubestateExporter
