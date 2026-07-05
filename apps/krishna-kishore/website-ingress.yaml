@@ -5,6 +5,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: inarm-cluster-issuer
 spec:
+  ingressClassName: kong
   rules:
     - host: nginx.inarm.in
       http:
