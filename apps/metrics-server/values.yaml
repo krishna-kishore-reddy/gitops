@@ -216,7 +216,7 @@ tls:
     addInjectorAnnotations: true
     existingIssuer:
       # Use an existing cert-manager issuer
-      enabled: true
+      enabled: false
       # Kind of the existing cert-manager issuer
       kind: "ClusterIssuer"
       # Name of the existing cert-manager issuer
