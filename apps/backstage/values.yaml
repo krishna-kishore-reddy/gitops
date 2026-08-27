@@ -458,7 +458,7 @@ networkPolicy:
 postgresql:
 
   # -- Switch to enable or disable the PostgreSQL helm chart
-  enabled: false
+  enabled: true
 
   # -- Change default PostgreSQL image location (workaround for https://github.com/bitnami/charts/issues/35164)
   image:
@@ -472,7 +472,7 @@ postgresql:
     username: bn_backstage
 
     # -- Password for the custom user to create
-    password: ""
+    password: bn_backstage
 
     # -- Name of existing secret to use for PostgreSQL credentials
     existingSecret: ""
@@ -490,7 +490,7 @@ postgresql:
       replicationPasswordKey: replication-password
 
   # -- PostgreSQL architecture (`standalone` or `replication`)
-  architecture: standalone
+  architecture: replication
 
 # -- Service Account Configuration
 # @default -- See below
@@ -521,7 +521,7 @@ metrics:
 
     # -- If enabled, a ServiceMonitor resource for Prometheus Operator is created
     # <br /> Prometheus Operator must be installed in your cluster prior to enabling.
-    enabled: false
+    enabled: true
 
     # -- ServiceMonitor annotations
     annotations: {}
