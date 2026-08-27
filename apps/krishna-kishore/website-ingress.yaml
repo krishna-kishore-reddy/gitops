@@ -5,10 +5,10 @@ metadata:
   # annotations:
   #   cert-manager.io/cluster-issuer: inarm-cluster-issuer
 spec:
-  tls:
-    - hosts:
-        - nginx.inarm.in
-      secretName: nginx-tls-cert 
+  # tls:
+  #   - hosts:
+  #       - nginx.inarm.in
+  #     secretName: nginx-tls-cert 
   ingressClassName: kong
   rules:
     - host: nginx.inarm.in
