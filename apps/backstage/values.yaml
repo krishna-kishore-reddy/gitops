@@ -102,7 +102,7 @@ ingress:
 httpRoute:
 
   # -- Enable the creation of the HTTPRoute resource
-  enabled: true
+  enabled: false
 
   # -- Additional labels for the HTTPRoute resource
   labels: {}
