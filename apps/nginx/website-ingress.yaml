@@ -2,8 +2,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: inarm-cluster-issuer
+  # annotations:
+  #   cert-manager.io/cluster-issuer: inarm-cluster-issuer
 spec:
   ingressClassName: kong
   rules:
