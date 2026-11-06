@@ -6,4 +6,4 @@ helmCharts:
     repo: https://helm.elastic.co
     valuesFile: values.yaml
     version: 3.5.0
-    namespace: elastic-opetator
+    namespace: observability
