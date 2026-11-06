@@ -64,6 +64,7 @@ spec:
     extensions:
       file_storage:
         directory: /var/lib/otelcol/checkpoints
+        create_directory: true
         timeout: 10s
 
     receivers:
