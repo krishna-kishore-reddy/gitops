@@ -75,7 +75,7 @@ spec:
         exclude:
           - /var/log/pods/observability_kubernetes-logs-collector*/*/*.log
 
-        start_at: beginning
+        start_at: end
 
         include_file_path: true
         include_file_name: false
