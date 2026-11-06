@@ -1,0 +1,47 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch
+  namespace: observability
+spec:
+  version: 9.2.0
+
+  nodeSets:
+    - name: default
+      count: 1
+
+      config:
+        node.roles:
+          - master
+          - data
+          - ingest
+          - data_content
+          - data_hot
+          - data_warm
+          - data_cold
+          - ml
+          - remote_cluster_client
+          - transform
+
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  cpu: "1"
+                  memory: 2Gi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: hostpath
+            resources:
+              requests:
+                storage: 20Gi
