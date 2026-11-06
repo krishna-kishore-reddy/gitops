@@ -125,7 +125,7 @@ spec:
         endpoints:
           - https://elasticsearch-es-http.observability.svc:9200
 
-        api_key: R1E3M3NhRUJVT3RIMVRKczdxeDM6VXNXWlFGSWVobVBoNko1N2pjd2lfdw==
+        api_key: SHc0MHNxRUJVT3RIMVRKc2lLeVg6RnJvNTg3bVE5X0IyVGN1QmVRZ1E4Zw==
 
         tls:
           ca_file: /etc/elasticsearch-certs/ca.crt
