@@ -31,6 +31,10 @@ spec:
     - name: varlogpods
       mountPath: /var/log/pods
       readOnly: true
+    
+    - name: docker-container-logs
+      mountPath: /var/lib/docker/containers
+      readOnly: true
 
     - name: otel-storage
       mountPath: /var/lib/otelcol
@@ -43,6 +47,10 @@ spec:
     - name: varlogpods
       hostPath:
         path: /var/log/pods
+        type: Directory
+    - name: docker-container-logs
+      hostPath:
+        path: /var/lib/docker/containers
         type: Directory
 
     - name: otel-storage
