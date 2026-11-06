@@ -1,0 +1,156 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: kubernetes-logs
+
+spec:
+  mode: daemonset
+
+  image: otel/opentelemetry-collector-contrib:0.142.0
+
+  replicas: 1
+
+  serviceAccount: otel-collector
+
+  podSecurityContext:
+    runAsUser: 0
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  volumeMounts:
+    - name: varlogpods
+      mountPath: /var/log/pods
+      readOnly: true
+
+    - name: otel-storage
+      mountPath: /var/lib/otelcol
+
+    - name: elasticsearch-certs
+      mountPath: /etc/elasticsearch-certs
+      readOnly: true
+
+  volumes:
+    - name: varlogpods
+      hostPath:
+        path: /var/log/pods
+        type: Directory
+
+    - name: otel-storage
+      hostPath:
+        path: /var/lib/otelcol
+        type: DirectoryOrCreate
+
+    - name: elasticsearch-certs
+      secret:
+        secretName: elasticsearch-es-http-certs-public
+
+  env:
+    - name: K8S_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+
+  config:
+    extensions:
+      file_storage:
+        directory: /var/lib/otelcol/checkpoints
+        timeout: 10s
+
+    receivers:
+      filelog:
+        include:
+          - /var/log/pods/*/*/*.log
+
+        exclude:
+          - /var/log/pods/observability_kubernetes-logs-collector*/*/*.log
+
+        start_at: beginning
+
+        include_file_path: true
+        include_file_name: false
+
+        storage: file_storage
+
+        operators:
+          - type: container
+            id: container-parser
+
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+
+      k8sattributes:
+        auth_type: serviceAccount
+
+        filter:
+          node_from_env_var: K8S_NODE_NAME
+
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.deployment.name
+            - k8s.node.name
+            - k8s.container.name
+
+      batch:
+        timeout: 5s
+        send_batch_size: 1024
+        send_batch_max_size: 2048
+
+    exporters:
+      elasticsearch:
+        endpoints:
+          - https://elasticsearch-es-http.observability.svc:9200
+
+        api_key: R1E3M3NhRUJVT3RIMVRKczdxeDM6VXNXWlFGSWVobVBoNko1N2pjd2lfdw==
+
+        tls:
+          ca_file: /etc/elasticsearch-certs/ca.crt
+
+        logs_index: logs-otel
+
+        sending_queue:
+          enabled: true
+          storage: file_storage
+          queue_size: 5000
+
+        retry:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+    service:
+      extensions:
+        - file_storage
+
+      pipelines:
+        logs:
+          receivers:
+            - filelog
+
+          processors:
+            - memory_limiter
+            - k8sattributes
+            - batch
+
+          exporters:
+            - elasticsearch
+
+      telemetry:
+        logs:
+          level: info
