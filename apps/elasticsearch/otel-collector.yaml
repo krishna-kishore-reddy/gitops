@@ -130,7 +130,7 @@ spec:
         tls:
           ca_file: /etc/elasticsearch-certs/ca.crt
 
-        logs_index: logs-otel.otel-default
+        #logs_index: logs-otel.otel-default
 
         sending_queue:
           enabled: true
