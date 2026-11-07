@@ -67,6 +67,11 @@ spec:
       valueFrom:
         fieldRef:
           fieldPath: spec.nodeName
+    - name: ELASTIC_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: otel-es-api-key
+          key: ELASTIC_API_KEY
 
   config:
     extensions:
