@@ -4,3 +4,4 @@ resources:
 - elasticsearch.yaml
 - otel-collector.yaml
 - sa-cr-crb.yaml
+- kibana-api-key-secret.yaml
