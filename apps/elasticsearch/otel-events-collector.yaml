@@ -88,7 +88,7 @@ spec:
         tls:
           ca_file: /etc/es-ca/ca.crt
         api_key: ${env:ELASTIC_API_KEY}
-        retry_on_failure:
+        retry:
           enabled: true
           initial_interval: 1s
           max_interval: 30s
