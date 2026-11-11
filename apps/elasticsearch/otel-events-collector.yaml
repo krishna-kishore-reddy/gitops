@@ -23,7 +23,7 @@ spec:
       valueFrom:
         secretKeyRef:
           name: otel-es-api-key
-          key: elastic_api_key
+          key: ELASTIC_API_KEY
   volumes:
     - name: es-ca
       secret:
