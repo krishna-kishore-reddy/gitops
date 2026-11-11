@@ -5,3 +5,5 @@ resources:
 - otel-collector.yaml
 - sa-cr-crb.yaml
 - kibana-api-key-secret.yaml
+- events-sa.yaml
+- otel-events-collector.yaml
